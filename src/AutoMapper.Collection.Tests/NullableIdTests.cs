@@ -34,7 +34,6 @@ namespace AutoMapper.Collection
             original.Should().HaveSameCount(dtos);
         }
 
-
         [Fact]
         public void Should_Work_With_Multiple_Null_Id()
         {
@@ -68,13 +67,15 @@ namespace AutoMapper.Collection
         {
             public string ID { get; set; }
             public string Title { get; set; }
-            public override string ToString() { return Title; }
+            public override string ToString() => Title;
         }
 
         public class ThingWithStringIdDto
         {
             public string ID { get; set; }
             public string Title { get; set; }
+
+            public override string ToString() => Title;
         }
     }
 }

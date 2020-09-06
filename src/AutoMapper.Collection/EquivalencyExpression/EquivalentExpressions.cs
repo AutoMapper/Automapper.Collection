@@ -40,10 +40,7 @@ namespace AutoMapper.EquivalencyExpression
         internal static IEquivalentComparer GetEquivalentExpression(this IConfigurationObjectMapper mapper, Type sourceType, Type destinationType)
         {
             var typeMap = mapper.ConfigurationProvider.ResolveTypeMap(sourceType, destinationType);
-            if (typeMap == null)
-            {
-                return null;
-            }
+            if (typeMap == null) return null;
 
             var comparer = GetEquivalentExpression(mapper.ConfigurationProvider, typeMap);
             if (comparer == null)
@@ -51,16 +48,10 @@ namespace AutoMapper.EquivalencyExpression
                 foreach (var item in typeMap.IncludedBaseTypes)
                 {
                     var baseTypeMap = mapper.ConfigurationProvider.ResolveTypeMap(item.SourceType, item.DestinationType);
-                    if (baseTypeMap == null)
-                    {
-                        continue;
-                    }
+                    if (baseTypeMap == null) continue;
 
                     comparer = GetEquivalentExpression(mapper.ConfigurationProvider, baseTypeMap);
-                    if (comparer != null)
-                    {
-                        break;
-                    }
+                    if (comparer != null) break;
                 }
             }
             return comparer;

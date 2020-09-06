@@ -27,10 +27,7 @@ namespace AutoMapper.EquivalencyExpression
             return Tuple.Create(visitor._sourceMembers, visitor._destinationMembers);
         }
 
-        protected override Expression VisitConditional(ConditionalExpression node)
-        {
-            return node;
-        }
+        protected override Expression VisitConditional(ConditionalExpression node) => node;
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
@@ -42,9 +39,9 @@ namespace AutoMapper.EquivalencyExpression
                 case ExpressionType.And:
                 case ExpressionType.AndAlso:
                     return base.VisitBinary(node);
-                case ExpressionType.Or:
-                case ExpressionType.OrElse:
-                    return node; // Maybe compare 0r's for expression matching on side
+                //case ExpressionType.Or:
+                //case ExpressionType.OrElse:
+                //    return node; // Maybe compare 0r's for expression matching on side
             }
 
             return node;

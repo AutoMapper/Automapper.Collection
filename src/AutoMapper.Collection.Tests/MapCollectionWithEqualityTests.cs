@@ -51,7 +51,7 @@ namespace AutoMapper.Collection
                 new Thing { ID = 3, Title = "test3" },
             };
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace AutoMapper.Collection
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace AutoMapper.Collection
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -92,7 +92,7 @@ namespace AutoMapper.Collection
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -108,7 +108,7 @@ namespace AutoMapper.Collection
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -118,14 +118,14 @@ namespace AutoMapper.Collection
             {
                 x.AddCollectionMappers();
                 // ReSharper disable once NegativeEqualityExpression
-                x.CreateMap<ThingDto, Thing>().EqualityComparison((ThingDto dto, Thing entity) => !(dto.ID != entity.ID));
+                x.CreateMap<ThingDto, Thing>().EqualityComparison((ThingDto dto, Thing entity) => dto.ID == entity.ID);
             });
 
             var dtos = new object[100000].Select((_, i) => new ThingDto { ID = i }).ToList();
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -135,14 +135,14 @@ namespace AutoMapper.Collection
             {
                 x.AddCollectionMappers();
                 // ReSharper disable once NegativeEqualityExpression
-                x.CreateMap<ThingDto, Thing>().EqualityComparison((ThingDto dto, Thing entity) => dto.ID == entity.ID && !(dto.ID != entity.ID));
+                x.CreateMap<ThingDto, Thing>().EqualityComparison((ThingDto dto, Thing entity) => dto.ID == entity.ID && dto.ID == entity.ID);
             });
 
             var dtos = new object[100000].Select((_, i) => new ThingDto { ID = i }).ToList();
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -151,14 +151,16 @@ namespace AutoMapper.Collection
             var mapper = CreateMapper(x =>
             {
                 x.AddCollectionMappers();
+#pragma warning disable IDE0038 // can't use pattern matching as would get "Error CS8122 An expression tree may not contain an 'is' pattern - matching operator."
                 x.CreateMap<ThingDto, Thing>().EqualityComparison((ThingDto source, Thing dest) => dest.ID == (source is ThingSubDto ? ((ThingSubDto)source).ID2 : source.ID));
+#pragma warning restore IDE0038 // Use pattern matching
             });
 
             var dtos = new object[100000].Select((_, i) => new ThingSubDto { ID = i + 100000 }).Cast<ThingDto>().ToList();
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -167,14 +169,16 @@ namespace AutoMapper.Collection
             var mapper = CreateMapper(x =>
             {
                 x.AddCollectionMappers();
+#pragma warning disable IDE0038 // can't use pattern matching as would get "Error CS8122 An expression tree may not contain an 'is' pattern - matching operator."
                 x.CreateMap<ThingDto, Thing>().EqualityComparison((ThingDto source, Thing dest) => (source is ThingSubDto ? ((ThingSubDto)source).ID2 : source.ID) == dest.ID);
+#pragma warning restore IDE0038 // Use pattern matching
             });
 
             var dtos = new object[100000].Select((_, i) => new ThingSubDto { ID = i + 100000 }).ToList();
 
             var items = new object[100000].Select((_, i) => new Thing { ID = i }).ToList();
 
-            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items.First());
+            mapper.Map(dtos, items.ToList()).Should().HaveElementAt(0, items[0]);
         }
 
         [Fact]
@@ -187,14 +191,14 @@ namespace AutoMapper.Collection
                     .ForMember(x => x.DtoId, m => m.Ignore())
                     .EqualityComparison((ClientDto src, Client dest) => dest.DtoId == 0 ? src.Code == dest.Code : src.Id == dest.DtoId);
             });
-            
+
             var dto = new ClientDto
             {
                 Code = "abc",
                 Id = 1
             };
-            var entity = new Client {Code = dto.Code, Id = 42};
-            var entityCollection = new List<Client> {entity};
+            var entity = new Client { Code = dto.Code, Id = 42 };
+            var entityCollection = new List<Client> { entity };
 
             mapper.Map(new[] { dto }, entityCollection);
 
@@ -213,7 +217,6 @@ namespace AutoMapper.Collection
             public long Id { get; set; }
             public string Code { get; set; }
         }
-
 
         [Fact]
         public void Should_Work_With_Null_Destination()
@@ -241,11 +244,11 @@ namespace AutoMapper.Collection
 
                 cfg.CreateMap<SaleCharge, Charge>()
                     .ConstructUsing(
-                        (saleCharge => new Charge(saleCharge.Category, saleCharge.Description, saleCharge.Value)))
+                        saleCharge => new Charge(saleCharge.Category, saleCharge.Description, saleCharge.Value))
                     .EqualityComparison((SaleCharge sc, Charge c) => sc.Category == c.Category && sc.Description == c.Description);
             });
 
-            var dto = new Charge("catagory", "description", 5);
+            var dto = new Charge("category", "description", 5);
             var entity = new SaleCharge { Category = dto.Category, Description = dto.Description };
             var entityCollection = new List<SaleCharge> { entity };
 
@@ -267,36 +270,17 @@ namespace AutoMapper.Collection
             public string Description { get; }
             public decimal Value { get; }
 
-            public override string ToString()
-            {
-                return $"{Category}|{Description}|{Value}";
-            }
+            public override string ToString() => $"{Category}|{Description}|{Value}";
 
-            public override int GetHashCode()
-            {
-                return $"{Category}|{Description}|{Value}".GetHashCode();
-            }
+            public override int GetHashCode() => $"{Category}|{Description}|{Value}".GetHashCode();
 
             public override bool Equals(object obj)
             {
-                if (ReferenceEquals(this, obj))
-                {
-                    return true;
-                }
+                if (ReferenceEquals(this, obj)) return true;
 
-                if (ReferenceEquals(null, obj))
-                {
-                    return false;
-                }
+                if (obj is null) return false;
 
-                var _obj = obj as Charge;
-
-                if (_obj == null)
-                {
-                    return false;
-                }
-
-                return Category == _obj.Category && Description == _obj.Description && Value == _obj.Value;
+                return obj is Charge chg && Category == chg.Category && Description == chg.Description && Value == chg.Value;
             }
         }
 
@@ -329,7 +313,7 @@ namespace AutoMapper.Collection
                 new Thing { ID = 3, Title = "test3" },
             };
 
-            mapper.Map(dtos, items.ToList()).Should().NotContain(items.First());
+            mapper.Map(dtos, items.ToList()).Should().NotContain(items[0]);
         }
 
         [Fact]
@@ -363,7 +347,7 @@ namespace AutoMapper.Collection
         {
             public int ID { get; set; }
             public string Title { get; set; }
-            public override string ToString() { return Title; }
+            public override string ToString() => Title;
         }
 
         public class ThingSubDto : ThingDto
@@ -375,6 +359,9 @@ namespace AutoMapper.Collection
         {
             public int ID { get; set; }
             public string Title { get; set; }
+
+            public override string ToString() => Title;
+
         }
 
         public class ThingWithCollection

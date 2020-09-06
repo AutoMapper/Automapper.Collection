@@ -5,10 +5,7 @@ namespace AutoMapper.Collection.Runtime
 {
     public class CollectionMappingFeature : IRuntimeFeature
     {
-        public CollectionMappingFeature(IEquivalentComparer equivalentComparer)
-        {
-            EquivalentComparer = equivalentComparer;
-        }
+        public CollectionMappingFeature(IEquivalentComparer equivalentComparer) => EquivalentComparer = equivalentComparer;
 
         public IEquivalentComparer EquivalentComparer { get; }
 

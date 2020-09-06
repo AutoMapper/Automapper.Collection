@@ -11,10 +11,7 @@ namespace AutoMapper.Collection.Configuration
     {
         private readonly List<Func<Func<Type, object>, IGeneratePropertyMaps>> _generators = new List<Func<Func<Type, object>, IGeneratePropertyMaps>>();
 
-        public void Add(Func<Func<Type, object>, IGeneratePropertyMaps> creator)
-        {
-            _generators.Add(creator);
-        }
+        public void Add(Func<Func<Type, object>, IGeneratePropertyMaps> creator) => _generators.Add(creator);
 
         void IGlobalFeature.Configure(IConfigurationProvider configurationProvider)
         {

@@ -13,15 +13,12 @@ namespace AutoMapper.EntityFramework
 
         public Persistence(DbSet<TTo> sourceSet, IMapper mapper)
         {
-            _sourceSet = sourceSet;
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _sourceSet = sourceSet;
         }
 
         public void InsertOrUpdate<TFrom>(TFrom from)
-            where TFrom : class
-        {
-            InsertOrUpdate(typeof(TFrom), from);
-        }
+            where TFrom : class => InsertOrUpdate(typeof(TFrom), from);
 
         public void InsertOrUpdate(Type type, object from)
         {
@@ -42,12 +39,10 @@ namespace AutoMapper.EntityFramework
             where TFrom : class
         {
             var equivExpr = _mapper.Map<TFrom, Expression<Func<TTo, bool>>>(from);
-            if (equivExpr == null)
-                return;
+            if (equivExpr == null) return;
             var to = _sourceSet.FirstOrDefault(equivExpr);
 
-            if (to != null)
-                _sourceSet.Remove(to);
+            if (to != null) _sourceSet.Remove(to);
         }
     }
 }

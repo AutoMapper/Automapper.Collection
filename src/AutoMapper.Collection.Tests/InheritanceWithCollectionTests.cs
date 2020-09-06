@@ -114,15 +114,9 @@ namespace AutoMapper.Collection
             newMailOrderEf.Should().BeOfType<MailOrderEf>();
         }
 
-        private static bool BaseEquals(OrderDomain oo, OrderEf dto)
-        {
-            return oo.Id == dto.Id;
-        }
+        private static bool BaseEquals(OrderDomain oo, OrderEf dto) => oo.Id == dto.Id;
 
-        private static bool DerivedEquals(OnlineOrderDomain ood, OnlineOrderEf ooe)
-        {
-            return ood.Key == ooe.Key;
-        }
+        private static bool DerivedEquals(OnlineOrderDomain ood, OnlineOrderEf ooe) => ood.Key == ooe.Key;
 
         public class MailOrderDomain : OrderDomain
         {
@@ -173,9 +167,7 @@ namespace AutoMapper.Collection
                 context.Mapper.Map(source.OnlineOrders, mappedOnlineOrders);
                 context.Mapper.Map(source.MailOrders, mappedMailOrders);
 
-                var efOrders = mappedOnlineOrders.Union(mappedMailOrders).ToList();
-
-                return efOrders;
+                return mappedOnlineOrders.Union(mappedMailOrders).ToList();
             }
         }
 

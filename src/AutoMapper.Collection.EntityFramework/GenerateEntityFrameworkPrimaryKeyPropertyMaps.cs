@@ -14,7 +14,7 @@ namespace AutoMapper.EntityFramework
     {
         private readonly TDatabaseContext _context = new TDatabaseContext();
         private readonly MethodInfo _createObjectSetMethodInfo = typeof(ObjectContext).GetMethod("CreateObjectSet", Type.EmptyTypes);
-        
+
         public IEnumerable<PropertyMap> GeneratePropertyMaps(TypeMap typeMap)
         {
             var propertyMaps = typeMap.PropertyMaps;
@@ -24,9 +24,7 @@ namespace AutoMapper.EntityFramework
                 dynamic objectSet = createObjectSetMethod.Invoke(_context.ObjectContext, null);
 
                 IEnumerable<EdmMember> keyMembers = objectSet.EntitySet.ElementType.KeyMembers;
-                var primaryKeyPropertyMatches = keyMembers.Select(m => propertyMaps.FirstOrDefault(p => p.DestinationMember.Name == m.Name));
-
-                return primaryKeyPropertyMatches;
+                return keyMembers.Select(m => propertyMaps.FirstOrDefault(p => p.DestinationMember.Name == m.Name));
             }
             catch (Exception)
             {

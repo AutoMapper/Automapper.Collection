@@ -19,10 +19,7 @@ namespace AutoMapper.Mappers
             where TSource : IEnumerable<TSourceItem>
             where TDestination : ICollection<TDestinationItem>
         {
-            if (source == null || destination == null)
-            {
-                return destination;
-            }
+            if (source == null || destination == null) return destination;
 
             var destList = destination.ToLookup(x => equivalentComparer.GetHashCode(x)).ToDictionary(x => x.Key, x => x.ToList());
 
@@ -31,10 +28,9 @@ namespace AutoMapper.Mappers
                 var sourceHash = equivalentComparer.GetHashCode(x);
 
                 var item = default(TDestinationItem);
-                List<TDestinationItem> itemList;
-                if (destList.TryGetValue(sourceHash, out itemList))
+                if (destList.TryGetValue(sourceHash, out var itemList))
                 {
-                    item = itemList.FirstOrDefault(dest => equivalentComparer.IsEquivalent(x, dest));
+                    item = itemList.Find(dest => equivalentComparer.IsEquivalent(x, dest));
                     if (item != null)
                     {
                         itemList.Remove(item);
@@ -66,11 +62,7 @@ namespace AutoMapper.Mappers
         private static readonly MethodInfo _mapMethodInfo = typeof(EquivalentExpressionAddRemoveCollectionMapper).GetRuntimeMethods().Single(x => x.IsStatic && x.Name == nameof(Map));
         private static readonly ConcurrentDictionary<TypePair, IObjectMapper> _objectMapperCache = new ConcurrentDictionary<TypePair, IObjectMapper>();
 
-        public bool IsMatch(TypePair typePair)
-        {
-            return typePair.SourceType.IsEnumerableType()
-                   && typePair.DestinationType.IsCollectionType();
-        }
+        public bool IsMatch(TypePair typePair) => typePair.SourceType.IsEnumerableType() && typePair.DestinationType.IsCollectionType();
 
         public Expression MapExpression(IConfigurationProvider configurationProvider, ProfileMap profileMap, IMemberMap memberMap,
             Expression sourceExpression, Expression destExpression, Expression contextExpression)
@@ -88,10 +80,7 @@ namespace AutoMapper.Mappers
                     for (var i = mappers.IndexOf(this) + 1; i < mappers.Count; i++)
                     {
                         var mapper = mappers[i];
-                        if (mapper.IsMatch(typePair))
-                        {
-                            return mapper;
-                        }
+                        if (mapper.IsMatch(typePair)) return mapper;
                     }
                     return _collectionMapper;
                 })

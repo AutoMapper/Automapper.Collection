@@ -12,12 +12,10 @@ namespace AutoMapper.Collection.LinqToSQL
         {
             var propertyMaps = typeMap.PropertyMaps;
 
-            var primaryKeyPropertyMatches = typeMap.DestinationType.GetProperties()
+            return typeMap.DestinationType.GetProperties()
                 .Where(IsPrimaryKey)
                 .Select(m => propertyMaps.FirstOrDefault(p => p.DestinationMember.Name == m.Name))
                 .ToList();
-
-            return primaryKeyPropertyMatches;
         }
 
         private static bool IsPrimaryKey(PropertyInfo propertyInfo)

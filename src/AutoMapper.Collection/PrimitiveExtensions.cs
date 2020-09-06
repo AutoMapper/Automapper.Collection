@@ -13,16 +13,10 @@
 
         private static bool ImplementsGenericInterface(this Type type, Type interfaceType)
         {
-            if (type.IsGenericType(interfaceType))
-            {
-                return true;
-            }
+            if (type.IsGenericType(interfaceType)) return true;
             foreach (var @interface in type.GetTypeInfo().ImplementedInterfaces)
             {
-                if (@interface.IsGenericType(interfaceType))
-                {
-                    return true;
-                }
+                if (@interface.IsGenericType(interfaceType)) return true;
             }
             return false;
         }

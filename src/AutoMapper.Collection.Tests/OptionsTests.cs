@@ -1,7 +1,6 @@
-﻿using AutoMapper.EquivalencyExpression;
-using AutoMapper.Mappers;
+﻿using System.Collections.Generic;
+using AutoMapper.EquivalencyExpression;
 using FluentAssertions;
-using System.Collections.Generic;
 using Xunit;
 
 namespace AutoMapper.Collection
@@ -19,10 +18,8 @@ namespace AutoMapper.Collection
             });
 
             var normalTestValue = 0;
-            var normalMapper = CreateMapper(cfg =>
-            {
-                cfg.CreateMap<ThingDto, Thing>().AfterMap((_, __, ctx) => normalTestValue = (int)ctx.Options.Items["Test"]);
-            });
+            var normalMapper = CreateMapper(cfg => cfg.CreateMap<ThingDto, Thing>().AfterMap(
+                (_, __, ctx) => normalTestValue = (int)ctx.Options.Items["Test"]));
 
             var dtos = new List<ThingDto>
             {
@@ -48,16 +45,15 @@ namespace AutoMapper.Collection
             public int ID { get; set; }
             public string Title { get; set; }
 
-            public override string ToString()
-            {
-                return Title;
-            }
+            public override string ToString() => Title;
         }
 
         public class ThingDto
         {
             public int ID { get; set; }
             public string Title { get; set; }
+
+            public override string ToString() => Title;
         }
     }
 }

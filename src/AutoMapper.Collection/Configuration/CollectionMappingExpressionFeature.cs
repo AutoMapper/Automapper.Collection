@@ -10,10 +10,7 @@ namespace AutoMapper.Collection.Configuration
     {
         private readonly Expression<Func<TSource, TDestination, bool>> _expression;
 
-        public CollectionMappingExpressionFeature(Expression<Func<TSource, TDestination, bool>> expression)
-        {
-            _expression = expression;
-        }
+        public CollectionMappingExpressionFeature(Expression<Func<TSource, TDestination, bool>> expression) => _expression = expression;
 
         public void Configure(TypeMap typeMap)
         {

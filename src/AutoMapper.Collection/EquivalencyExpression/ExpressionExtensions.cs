@@ -7,7 +7,7 @@ using AutoMapper.Collection;
 
 namespace AutoMapper.EquivalencyExpression
 {
-    internal static class ExpressionExtentions
+    internal static class ExpressionExtensions
     {
         private static readonly ConcurrentDictionary<Type, Type> _singleParameterTypeDictionary = new ConcurrentDictionary<Type, Type>();
 
@@ -16,17 +16,14 @@ namespace AutoMapper.EquivalencyExpression
             return _singleParameterTypeDictionary.GetOrAdd(type, t =>
             {
                 var isExpression = typeof(Expression).GetTypeInfo().IsAssignableFrom(t.GetTypeInfo());
-                if (!isExpression)
-                    return null;
+                if (!isExpression) return null;
 
                 var expressionOf = t.GetTypeInfo().GenericTypeArguments[0];
                 var isFunction = expressionOf.GetGenericTypeDefinition() == typeof(Func<,>);
-                if (!isFunction)
-                    return null;
+                if (!isFunction) return null;
 
                 var isPredicate = expressionOf.GetTypeInfo().GenericTypeArguments[1] == typeof(bool);
-                if (!isPredicate)
-                    return null;
+                if (!isPredicate) return null;
 
                 var objType = expressionOf.GetTypeInfo().GenericTypeArguments[0];
                 return CacheAndReturnType(type, objType);
@@ -78,9 +75,9 @@ namespace AutoMapper.EquivalencyExpression
             expressions.Add(returnExpression);
             expressions.Add(returnLabel);
 
-            var resutltBlock = Expression.Block(new[] { hashVariable }, expressions);
+            var resultBlock = Expression.Block(new[] { hashVariable }, expressions);
 
-            return Expression.Lambda<Func<T, int>>(resutltBlock, sourceParam);
+            return Expression.Lambda<Func<T, int>>(resultBlock, sourceParam);
         }
     }
 }

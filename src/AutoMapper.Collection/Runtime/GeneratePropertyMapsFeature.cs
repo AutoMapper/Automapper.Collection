@@ -14,10 +14,7 @@ namespace AutoMapper.Collection.Runtime
         private readonly IList<IGeneratePropertyMaps> _generators;
         private readonly ConcurrentDictionary<TypePair, IEquivalentComparer> _comparers = new ConcurrentDictionary<TypePair, IEquivalentComparer>();
 
-        public GeneratePropertyMapsFeature(List<IGeneratePropertyMaps> generators)
-        {
-            _generators = generators.AsReadOnly();
-        }
+        public GeneratePropertyMapsFeature(List<IGeneratePropertyMaps> generators) => _generators = generators.AsReadOnly();
 
         public IEquivalentComparer Get(TypeMap typeMap)
         {
@@ -46,10 +43,7 @@ namespace AutoMapper.Collection.Runtime
             var destExpr = Expression.Parameter(destType, "dest");
 
             var equalExpr = propertyMaps.Select(pm => SourceEqualsDestinationExpression(pm, srcExpr, destExpr)).ToList();
-            if (equalExpr.Count == 0)
-            {
-                return EquivalentExpression.BadValue;
-            }
+            if (equalExpr.Count == 0) return EquivalentExpression.BadValue;
 
             var finalExpression = equalExpr.Skip(1).Aggregate(equalExpr[0], Expression.And);
 
