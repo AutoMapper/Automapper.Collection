@@ -39,14 +39,35 @@ namespace AutoMapper.EquivalencyExpression
 
         internal static IEquivalentComparer GetEquivalentExpression(this IConfigurationObjectMapper mapper, Type sourceType, Type destinationType)
         {
+            return GetFeatureValue(mapper, sourceType, destinationType, GetEquivalentExpression);
+        }
+
+        internal static IEquivalentComparer GetEquivalentExpression(IConfigurationProvider configurationProvider, TypeMap typeMap)
+        {
+            return typeMap.Features.Get<CollectionMappingFeature>()?.EquivalentComparer
+                ?? configurationProvider.Features.Get<GeneratePropertyMapsFeature>().Get(typeMap);
+        }
+
+        internal static bool GetUseSourceOrder(this IConfigurationObjectMapper mapper, Type sourceType, Type destinationType)
+        {
+            return GetFeatureValue(mapper, sourceType, destinationType, GetUseSourceOrder) ?? false;
+        }
+
+        internal static bool? GetUseSourceOrder(IConfigurationProvider configurationProvider, TypeMap typeMap)
+        {
+            return typeMap.Features.Get<CollectionMappingFeature>()?.UseSourceOrder;
+        }
+
+        private static T GetFeatureValue<T>(this IConfigurationObjectMapper mapper, Type sourceType, Type destinationType, Func<IConfigurationProvider, TypeMap, T> getFunc)
+        {
             var typeMap = mapper.ConfigurationProvider.ResolveTypeMap(sourceType, destinationType);
             if (typeMap == null)
             {
-                return null;
+                return default;
             }
 
-            var comparer = GetEquivalentExpression(mapper.ConfigurationProvider, typeMap);
-            if (comparer == null)
+            var value = getFunc(mapper.ConfigurationProvider, typeMap);
+            if (value == null)
             {
                 foreach (var item in typeMap.IncludedBaseTypes)
                 {
@@ -56,20 +77,15 @@ namespace AutoMapper.EquivalencyExpression
                         continue;
                     }
 
-                    comparer = GetEquivalentExpression(mapper.ConfigurationProvider, baseTypeMap);
-                    if (comparer != null)
+                    value = getFunc(mapper.ConfigurationProvider, baseTypeMap);
+                    if (value != null)
                     {
                         break;
                     }
                 }
             }
-            return comparer;
-        }
 
-        internal static IEquivalentComparer GetEquivalentExpression(IConfigurationProvider configurationProvider, TypeMap typeMap)
-        {
-            return typeMap.Features.Get<CollectionMappingFeature>()?.EquivalentComparer
-                ?? configurationProvider.Features.Get<GeneratePropertyMapsFeature>().Get(typeMap);
+            return value;
         }
 
         /// <summary>
@@ -83,6 +99,22 @@ namespace AutoMapper.EquivalencyExpression
         public static IMappingExpression<TSource, TDestination> EqualityComparison<TSource, TDestination>(this IMappingExpression<TSource, TDestination> mappingExpression, Expression<Func<TSource, TDestination, bool>> EquivalentExpression)
         {
             mappingExpression.Features.Set(new CollectionMappingExpressionFeature<TSource, TDestination>(EquivalentExpression));
+            return mappingExpression;
+        }
+
+        /// <summary>
+        /// Make destination collection reordered according to source.
+        /// </summary>
+        /// <typeparam name="TSource">Source type</typeparam>
+        /// <typeparam name="TDestination">Destination being compared to</typeparam>
+        /// <param name="mappingExpression">Base Mapping Expression</param>
+        /// <param name="useSourceOrder">When <code>true</code> is passed then destination items reordered according to source.</param>
+        /// <returns></returns>
+        public static IMappingExpression<TSource, TDestination> UseSourceOrder<TSource, TDestination>(this IMappingExpression<TSource, TDestination> mappingExpression, bool useSourceOrder)
+        {
+            (mappingExpression.Features.Get<CollectionMappingExpressionFeature<TSource, TDestination>>()
+             ?? throw new ArgumentException("Invoke the IMapperConfigurationExpression.EqualityComparison() before UseSourceOrder."))
+                .UseSourceOrder = useSourceOrder;
             return mappingExpression;
         }
 

@@ -15,10 +15,12 @@ namespace AutoMapper.Collection.Configuration
             _expression = expression;
         }
 
+        public bool UseSourceOrder { get; set; }
+
         public void Configure(TypeMap typeMap)
         {
             var equivalentExpression = new EquivalentExpression<TSource, TDestination>(_expression);
-            typeMap.Features.Set(new CollectionMappingFeature(equivalentExpression));
+            typeMap.Features.Set(new CollectionMappingFeature(equivalentExpression, UseSourceOrder));
         }
 
         public IMappingFeature Reverse()

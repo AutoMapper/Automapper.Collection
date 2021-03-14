@@ -15,7 +15,7 @@ namespace AutoMapper.Mappers
 
         public IConfigurationProvider ConfigurationProvider { get; set; }
 
-        public static TDestination Map<TSource, TSourceItem, TDestination, TDestinationItem>(TSource source, TDestination destination, ResolutionContext context, IEquivalentComparer equivalentComparer)
+        public static TDestination Map<TSource, TSourceItem, TDestination, TDestinationItem>(TSource source, TDestination destination, ResolutionContext context, IEquivalentComparer equivalentComparer, bool useSourceOrder)
             where TSource : IEnumerable<TSourceItem>
             where TDestination : ICollection<TDestinationItem>
         {
@@ -24,43 +24,75 @@ namespace AutoMapper.Mappers
                 return destination;
             }
 
-            var destList = destination.ToLookup(x => equivalentComparer.GetHashCode(x)).ToDictionary(x => x.Key, x => x.ToList());
+            var destItemsByHash = destination.GroupBy(x => equivalentComparer.GetHashCode(x)).ToDictionary(x => x.Key, x => x.ToList());
 
-            var items = source.Select(x =>
+            if (useSourceOrder)
             {
-                var sourceHash = equivalentComparer.GetHashCode(x);
+                destination.Clear();
 
-                var item = default(TDestinationItem);
-                List<TDestinationItem> itemList;
-                if (destList.TryGetValue(sourceHash, out itemList))
+                foreach (var srcItem in source)
                 {
-                    item = itemList.FirstOrDefault(dest => equivalentComparer.IsEquivalent(x, dest));
-                    if (item != null)
-                    {
-                        itemList.Remove(item);
-                    }
-                }
-                return new { SourceItem = x, DestinationItem = item };
-            });
+                    RetrieveCorrespondingItems(srcItem, out var dstItem, out var _);
 
-            foreach (var keypair in items)
-            {
-                if (keypair.DestinationItem == null)
-                {
-                    destination.Add((TDestinationItem)context.Mapper.Map(keypair.SourceItem, null, typeof(TSourceItem), typeof(TDestinationItem)));
-                }
-                else
-                {
-                    context.Mapper.Map(keypair.SourceItem, keypair.DestinationItem);
+                    dstItem = MapItem(srcItem, dstItem);
+
+                    destination.Add(dstItem);
                 }
             }
-
-            foreach (var removedItem in destList.SelectMany(x => x.Value))
+            else
             {
-                destination.Remove(removedItem);
+                foreach (var srcItem in source)
+                {
+                    RetrieveCorrespondingItems(srcItem, out var dstItem, out var itemExistsInDestination);
+
+                    dstItem = MapItem(srcItem, dstItem);
+                    if (!itemExistsInDestination)
+                    {
+                        destination.Add(dstItem);
+                    }
+                }
+
+                foreach (var removedItem in destItemsByHash.SelectMany(x => x.Value))
+                {
+                    destination.Remove(removedItem);
+                }
             }
 
             return destination;
+
+            void RetrieveCorrespondingItems(TSourceItem srcItem, out TDestinationItem dstItem, out bool isFound)
+            {
+                var srcHash = equivalentComparer.GetHashCode(srcItem);
+                dstItem = default;
+                isFound = false;
+                if (destItemsByHash.TryGetValue(srcHash, out var destCandidateItems))
+                {
+                    foreach (var item in destCandidateItems)
+                    {
+                        if (equivalentComparer.IsEquivalent(srcItem, item))
+                        {
+                            dstItem = item;
+                            isFound = true;
+                            destCandidateItems.Remove(item);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            TDestinationItem MapItem(TSourceItem srcItem, TDestinationItem dstItem)
+            {
+                if (dstItem == null)
+                {
+                    dstItem = (TDestinationItem)context.Mapper.Map(srcItem, null, typeof(TSourceItem), typeof(TDestinationItem));
+                }
+                else
+                {
+                    context.Mapper.Map(srcItem, dstItem);
+                }
+
+                return dstItem;
+            }
         }
 
         private static readonly MethodInfo _mapMethodInfo = typeof(EquivalentExpressionAddRemoveCollectionMapper).GetRuntimeMethods().Single(x => x.IsStatic && x.Name == nameof(Map));
@@ -98,8 +130,10 @@ namespace AutoMapper.Mappers
                 .MapExpression(configurationProvider, profileMap, memberMap, sourceExpression, destExpression, contextExpression);
             }
 
+            var useSourceOrder = this.GetUseSourceOrder(sourceType, destType);
+
             var method = _mapMethodInfo.MakeGenericMethod(sourceExpression.Type, sourceType, destExpression.Type, destType);
-            var map = Call(null, method, sourceExpression, destExpression, contextExpression, Constant(equivalencyExpression));
+            var map = Call(null, method, sourceExpression, destExpression, contextExpression, Constant(equivalencyExpression), Constant(useSourceOrder));
 
             var notNull = NotEqual(destExpression, Constant(null));
             var collectionMapperExpression = _collectionMapper.MapExpression(configurationProvider, profileMap, memberMap, sourceExpression, destExpression, contextExpression);
